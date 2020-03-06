@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt-nodejs");
 const Contact = require("./../../model/contact_model");
 const User = require("./../../model/user_model");
 var ObjectId = require('mongoose').Types.ObjectId;
+const db = require('mongoose');
 
 router.post('/', (req, res, next)=>{
 
@@ -44,21 +45,32 @@ newuser.save().then(result=> {
  });
 });
 
-router.delete("/:id", (req, res) => {
-  User.findByIdAndRemove(req.params.id, (err, user) =>  {
-    if (user){
-      let cid = new ObjectId(user.contacts[0])
-      Contact.findByIdAndRemove(cid, (err, cont) =>{
-        if(err){
-           return res.status(500).send(err)
-        }
-     return res.status(200).send(cont);
-      });
-    }
+router.delete("/:id", async function(req, res) {
+  console.log("api hitting")
+  const SESSION = await User.startSession();
+  SESSION.startTransaction();
+  try{
+    const opts = { SESSION };
+    let result1 = await User.findByIdAndRemove(req.params.id, opts);
+      let cid = new ObjectId(req.params.id)
+      let result2 = await Contact.findOneAndRemove({user: cid1}, opts);
+      await SESSION.commitTransaction();
+      SESSION.endSession();
+      return res.status(200).send("User deleted successfully")
+}catch (error) {
+   console.log(error)
+    await SESSION.abortTransaction();
+    SESSION.endSession();
+    return res.status(500).send(error)
+          }
 
-  });
-});
+})
 
 
 
 module.exports = router;
+
+
+
+
+//

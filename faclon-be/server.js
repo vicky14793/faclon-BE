@@ -7,7 +7,7 @@ var primeRouter = require('./api/routes/prime');
 const User = require('./api/routes/users');
 const Contact = require('./api/routes/contacts');
 
-mongoose.connect('mongodb://localhost:27017/faclon', {useNewUrlParser: true}).then(
+mongoose.connect('mongodb://localhost:27017/faclon', {useNewUrlParser: true, useFindAndModify: false}).then(
    db =>  {
      console.log('Connected to server');
    }, err =>  {
