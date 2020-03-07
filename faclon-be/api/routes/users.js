@@ -3,8 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt-nodejs");
 const Contact = require("./../../model/contact_model");
 const User = require("./../../model/user_model");
-var ObjectId = require('mongoose').Types.ObjectId;
-const db = require('mongoose');
+const mongoose = require('mongoose');
 
 router.post('/', (req, res, next)=>{
 
@@ -45,20 +44,20 @@ newuser.save().then(result=> {
  });
 });
 
-router.delete("/:id", async function(req, res) {
+router.delete("/:id", async(req, res) => {
   console.log("api hitting")
-  const SESSION = await User.startSession();
+  const SESSION = await mongoose.startSession();
   SESSION.startTransaction();
   try{
+    let cid = mongoose.Types.ObjectId(req.params.id)
     const opts = { SESSION };
-    let result1 = await User.findByIdAndRemove(req.params.id, opts);
-      let cid = new ObjectId(req.params.id)
-      let result2 = await Contact.findOneAndRemove({user: cid1}, opts);
+    let result1 = await User.findByIdAndRemove(req.params.id, null, opts);
+      let result2 = await Contact.remove({user: user_id}, null, opts);
       await SESSION.commitTransaction();
       SESSION.endSession();
       return res.status(200).send("User deleted successfully")
-}catch (error) {
-   console.log(error)
+}
+   catch (error) {
     await SESSION.abortTransaction();
     SESSION.endSession();
     return res.status(500).send(error)
